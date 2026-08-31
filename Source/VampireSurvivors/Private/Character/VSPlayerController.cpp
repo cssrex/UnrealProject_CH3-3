@@ -35,7 +35,7 @@ void AVSPlayerController::BeginPlay()
 	}
 
 	FString CurrentMapName = GetWorld()->GetMapName();
-	if (CurrentMapName.Contains("MenuLevel"))
+	if (CurrentMapName.Contains("L_MainMenu"))
 	{
 		ShowMainMenu(false);
 	}
@@ -141,6 +141,6 @@ void AVSPlayerController::StartGame()
 		VSGameInstance->SetTotalScore(0);
 	}
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName("BasicLevel"));
+	UGameplayStatics::OpenLevel(GetWorld(), FName("L_Basic"));
 	SetPause(false);
 }

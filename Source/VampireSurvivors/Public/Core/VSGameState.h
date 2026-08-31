@@ -27,6 +27,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Coin")
 	int32 CollectedCoinCount;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+	int32 MaxWave;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
 	float LevelDuration;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
@@ -44,10 +47,16 @@ public:
 
 private:
 	void StartLevel();
-	void OnLevelTimeUp();
+	void StartWave();
+	void OnWaveTimeUp();
 	void EndLevel();
 
 private:
-	FTimerHandle LevelTimerHandle;
+	FTimerHandle WaveTimerHandle;
 	FTimerHandle HUDUpdateTimerHandle;
+
+	int32 CurWave;
+
+	TArray<TWeakObjectPtr<AActor>> WaveItems;
+
 };

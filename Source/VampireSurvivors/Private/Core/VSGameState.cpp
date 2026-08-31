@@ -1,4 +1,4 @@
-#include "Core/VSGameState.h"
+﻿#include "Core/VSGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Manager/SpawnManager.h"
 #include "Item/CoinItem.h"
@@ -12,9 +12,14 @@ AVSGameState::AVSGameState()
 	Score = 0;
 	SpawnedCoinCount = 0;
 	CollectedCoinCount = 0;
+
+	MaxWave = 3;
+
 	LevelDuration = 30.0f;
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
+
+	CurWave = 1;
 }
 
 void AVSGameState::BeginPlay()
@@ -45,6 +50,25 @@ void AVSGameState::StartLevel()
 		}
 	}
 
+	StartWave();
+}
+
+void AVSGameState::StartWave()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan, FString::Printf(TEXT("Wave %d 시작!"), CurWave));
+
+	for (const TWeakObjectPtr<AActor>& WaveItem : WaveItems)
+	{
+		if (AActor* Item = WaveItem.Get())
+		{
+			Item->Destroy();
+		}
+	}
+
+	WaveItems.Reset();
+	SpawnedCoinCount = 0;
+	CollectedCoinCount = 0;
+
 	TArray<AActor*> FoundVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnManager::StaticClass(), FoundVolumes);
 
@@ -57,27 +81,42 @@ void AVSGameState::StartLevel()
 			if (SpawnVolume)
 			{
 				AActor* SpawnedActor = SpawnVolume->SpawnRandomItem();
-				if (SpawnedActor && SpawnedActor->IsA(ACoinItem::StaticClass()))
+				if (IsValid(SpawnedActor))
 				{
-					SpawnedCoinCount++;
+					WaveItems.Add(TWeakObjectPtr<AActor>(SpawnedActor));
+
+					if (SpawnedActor->IsA(ACoinItem::StaticClass()))
+					{
+						SpawnedCoinCount++;
+					}
 				}
+				
 			}
 		}
 	}
 
-	UpdateHUD();
+	GetWorldTimerManager().SetTimer(WaveTimerHandle, this, &AVSGameState::OnWaveTimeUp, LevelDuration, false);
 
-	GetWorldTimerManager().SetTimer(LevelTimerHandle, this, &AVSGameState::OnLevelTimeUp, LevelDuration, false);
+	UpdateHUD();
 }
 
-void AVSGameState::OnLevelTimeUp()
+void AVSGameState::OnWaveTimeUp()
 {
-	EndLevel();
+	if (CurWave < MaxWave)
+	{
+		StartWave();
+
+		CurWave++;
+	}
+	else
+	{
+		EndLevel();
+	}
 }
 
 void AVSGameState::EndLevel()
 {
-	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
+	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
 
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
@@ -112,7 +151,7 @@ void AVSGameState::OnCoinCollected()
 
 	if (SpawnedCoinCount > 0 && CollectedCoinCount >= SpawnedCoinCount)
 	{
-		EndLevel();
+		OnWaveTimeUp();
 	}
 }
 
@@ -126,7 +165,7 @@ void AVSGameState::UpdateHUD()
 			{
 				if (UTextBlock* TimeText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("TimeText"))))
 				{
-					float RemainingTime = GetWorldTimerManager().GetTimerRemaining(LevelTimerHandle);
+					float RemainingTime = GetWorldTimerManager().GetTimerRemaining(WaveTimerHandle);
 					TimeText->SetText(FText::FromString(FString::Printf(TEXT("Time: %.1f"), RemainingTime)));
 				}
 
