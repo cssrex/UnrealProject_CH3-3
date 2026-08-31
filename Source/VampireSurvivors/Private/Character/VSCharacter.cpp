@@ -29,7 +29,14 @@ AVSCharacter::AVSCharacter()
 	SprintSpeedMultiplier = 1.7f;
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	MaxHealth = 100.0f;
 	Health = MaxHealth;
@@ -109,12 +116,14 @@ void AVSCharacter::Move(const FInputActionValue& value)
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
-		AddMovementInput(GetActorForwardVector(), MoveInput.X);
+		const FVector ForwardDirection = FRotator(0.0f, Controller->GetControlRotation().Yaw, 0.0f).Vector();
+		AddMovementInput(ForwardDirection, MoveInput.X);
 	}
 
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		AddMovementInput(GetActorRightVector(), MoveInput.Y);
+		const FVector RightDirection = FRotator(0.0f, Controller->GetControlRotation().Yaw + 90.0f, 0.0f).Vector();
+		AddMovementInput(RightDirection, MoveInput.Y);
 	}
 }
 
@@ -139,7 +148,7 @@ void AVSCharacter::Look(const FInputActionValue& value)
 	FVector2D LookInput = value.Get<FVector2D>();
 
 	AddControllerYawInput(LookInput.X);
-	AddControllerPitchInput(LookInput.Y);
+	AddControllerPitchInput(LookInput.Y * 0.5f);
 }
 
 void AVSCharacter::StartSprint(const FInputActionValue& value)
