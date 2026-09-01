@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -16,7 +16,7 @@ class VAMPIRESURVIVORS_API AVSCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "Health") // Get ÇÔ¼ö¿¡¼­´Â ÁÖ·Î BlueprintPureÀ» »ç¿ë
+	UFUNCTION(BlueprintPure, Category = "Health") // Get í•¨ìˆ˜ì—ì„œëŠ” ì£¼ë¡œ BlueprintPureì„ ì‚¬ìš©
 	float GetHealth() const;
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void AddHealth(float Amount);
@@ -50,10 +50,10 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual float TakeDamage(
-		float DamageAmount,						// ´ë¹ÌÁö¸¦ ¾ó¸¶³ª ÀÔ¾ú´ÂÁö
-		struct FDamageEvent const& DamageEvent, // ´ë¹ÌÁö¸¦ ¹ŞÀº À¯Çü ÀÌº¥Æ® (½ºÅ³ °ø°İ µîÀÇ Ãß°¡ Á¤º¸¸¦ ¹ŞÀ» ¶§)
-		AController* EventInstigator,			// ´ë¹ÌÁö¸¦ ´©°¡ ÀÔÇû´ÂÁö (¿©±â¼­´Â nullptr. Áö·Ú¸¦ ½ÉÀº »ç¶÷ÀÌ ÀÖ´Ù¸é ±× Á¤º¸°¡ µé¾î¿È)
-		AActor* DamageCauser					// ´ë¹ÌÁö¸¦ ´©°¡ ¾î¶² ¾×ÅÍ°¡ ÀÔÇû´ÂÁö (¿©±â¼­´Â Áö·Ú ¾×ÅÍ°¡ ¿©±â¿¡ µé¾î¿È)
+		float DamageAmount,						// ëŒ€ë¯¸ì§€ë¥¼ ì–¼ë§ˆë‚˜ ì…ì—ˆëŠ”ì§€
+		struct FDamageEvent const& DamageEvent, // ëŒ€ë¯¸ì§€ë¥¼ ë°›ì€ ìœ í˜• ì´ë²¤íŠ¸ (ìŠ¤í‚¬ ê³µê²© ë“±ì˜ ì¶”ê°€ ì •ë³´ë¥¼ ë°›ì„ ë•Œ)
+		AController* EventInstigator,			// ëŒ€ë¯¸ì§€ë¥¼ ëˆ„ê°€ ì…í˜”ëŠ”ì§€ (ì—¬ê¸°ì„œëŠ” nullptr. ì§€ë¢°ë¥¼ ì‹¬ì€ ì‚¬ëŒì´ ìˆë‹¤ë©´ ê·¸ ì •ë³´ê°€ ë“¤ì–´ì˜´)
+		AActor* DamageCauser					// ëŒ€ë¯¸ì§€ë¥¼ ëˆ„ê°€ ì–´ë–¤ ì•¡í„°ê°€ ì…í˜”ëŠ”ì§€ (ì—¬ê¸°ì„œëŠ” ì§€ë¢° ì•¡í„°ê°€ ì—¬ê¸°ì— ë“¤ì–´ì˜´)
 	) override;
 
 

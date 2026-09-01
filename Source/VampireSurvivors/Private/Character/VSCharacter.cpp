@@ -1,4 +1,4 @@
-#include "Character/VSCharacter.h"
+ï»¿#include "Character/VSCharacter.h"
 #include "Character/VSPlayerController.h"
 #include "Core/VSGameState.h"
 #include "EnhancedInputComponent.h"
@@ -145,7 +145,7 @@ float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	{
 		OnDeath();
 	}
-	return ActualDamage; // µé¾î¿Â DamageAmount °ª¿¡´Ù°¡ ¹æ¾î±¸, ÀúÇ× µîÀ» °í·ÁÇØ °è»êÇØ¼­ Ä³¸¯ÅÍ°¡ ½ÇÁ¦·Î ÀÔÀº ´ë¹ÌÁö
+	return ActualDamage; // ë“¤ì–´ì˜¨ DamageAmount ê°’ì—ë‹¤ê°€ ë°©ì–´êµ¬, ì €í•­ ë“±ì„ ê³ ë ¤í•´ ê³„ì‚°í•´ì„œ ìºë¦­í„°ê°€ ì‹¤ì œë¡œ ì…ì€ ëŒ€ë¯¸ì§€
 }
 
 void AVSCharacter::Move(const FInputActionValue& value)

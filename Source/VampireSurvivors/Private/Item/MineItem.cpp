@@ -1,4 +1,4 @@
-#include "Item/MineItem.h"
+О╩©#include "Item/MineItem.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -51,11 +51,11 @@ void AMineItem::Explode()
 		if (Actor && Actor->ActorHasTag("Player"))
 		{
 			UGameplayStatics::ApplyDamage(
-				Actor,						// ╢К╧лаЖ╦╕ ╧чю╩ ╬вем
-				ExplosionDamage,			// ╢К╧лаЖюг ╬Г
-				nullptr,					// ╢К╧лаЖ╦╕ ю╞╧ъгя ажц╪юг гц╥╧юл╬Н даф╝╥я╥╞
-				this,						// ╢К╧лаЖ╦╕ ютхЫ ╬вем
-				UDamageType::StaticClass()  // ╢К╧лаЖ ю╞гЭ (©╘╠Б╪╜╢б ╠Б╨╩ю╩ Ёя╠Х)
+				Actor,						// К▄─К╞╦Л╖─К╔╪ К╟⌡Л²└ Л∙║М└╟
+				ExplosionDamage,			// К▄─К╞╦Л╖─Л²≤ Л√▒
+				nullptr,					// К▄─К╞╦Л╖─К╔╪ Л°═К╟°М∙° Лё╪Л╡╢Л²≤ М■▄К═┬Л²╢Л√╢ Л╩╗М┼╦К║╓К÷╛
+				this,						// К▄─К╞╦Л╖─К╔╪ Л·┘М·▄ Л∙║М└╟
+				UDamageType::StaticClass()  // К▄─К╞╦Л╖─ Л°═М≤∙ (Л≈╛Й╦╟Л└°К┼■ Й╦╟КЁ╦Л²└ К└≤Й╧─)
 			);
 		}
 	}

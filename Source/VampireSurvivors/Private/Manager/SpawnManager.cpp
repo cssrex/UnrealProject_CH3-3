@@ -39,6 +39,15 @@ AActor* ASpawnManager::SpawnRandomItem()
 	return nullptr;
 }
 
+AActor* ASpawnManager::SpawnExplosionZone()
+{
+	if (!ExplosionZoneClass) return nullptr;
+
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ExplosionZoneClass, GetRandomPointInVolume(), FRotator::ZeroRotator);
+
+	return SpawnedActor;
+}
+
 FItemSpawnRow* ASpawnManager::GetRandomItem() const
 {
 	if (!ItemDataTable) return nullptr;

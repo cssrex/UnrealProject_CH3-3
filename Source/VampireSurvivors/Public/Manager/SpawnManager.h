@@ -16,6 +16,7 @@ public:
 	ASpawnManager();
 
 	AActor* SpawnRandomItem();
+	AActor* SpawnExplosionZone();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
@@ -24,6 +25,8 @@ protected:
 	UBoxComponent* SpawningBox;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
 	UDataTable* ItemDataTable;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
+	TSubclassOf<AActor> ExplosionZoneClass;
 
 private:
 	FItemSpawnRow* GetRandomItem() const;

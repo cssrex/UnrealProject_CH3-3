@@ -49,6 +49,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	int32 MaxLevels;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+	int32 ExplosionDelay;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
 	TArray<FName> LevelMapNames;
 
@@ -64,12 +67,15 @@ private:
 	void OnWaveTimeUp();
 	void EndLevel();
 
+	UFUNCTION()
+	void SpawnExplosion();
+
 private:
 	FTimerHandle WaveTimerHandle;
 	FTimerHandle HUDUpdateTimerHandle;
+	FTimerHandle ExplosionZoneTimerHandle;
 
 	int32 CurWave;
 
 	TArray<TWeakObjectPtr<AActor>> WaveItems;
-
 };

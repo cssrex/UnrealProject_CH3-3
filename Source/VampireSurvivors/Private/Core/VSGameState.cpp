@@ -25,6 +25,8 @@ AVSGameState::AVSGameState()
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
 
+	ExplosionDelay = 5.0f;
+
 	CurWave = 1;
 }
 
@@ -61,6 +63,8 @@ void AVSGameState::StartLevel()
 
 void AVSGameState::StartWave()
 {
+	GetWorldTimerManager().ClearTimer(ExplosionZoneTimerHandle);
+	
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan, FString::Printf(TEXT("Wave %d 시작!"), CurWave));
 
 	for (const TWeakObjectPtr<AActor>& WaveItem : WaveItems)
@@ -104,9 +108,14 @@ void AVSGameState::StartWave()
 						SpawnedCoinCount++;
 					}
 				}
-				
 			}
 		}
+	}
+
+	if (CurrentLevelIndex + 1 >= 3)
+	{
+		SpawnExplosion();
+		GetWorldTimerManager().SetTimer(ExplosionZoneTimerHandle, this, &AVSGameState::SpawnExplosion, ExplosionDelay, true);
 	}
 
 	GetWorldTimerManager().SetTimer(WaveTimerHandle, this, &AVSGameState::OnWaveTimeUp, CurrentWaveConfig.WaveDuration, false);
@@ -131,6 +140,7 @@ void AVSGameState::OnWaveTimeUp()
 void AVSGameState::EndLevel()
 {
 	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
+	GetWorldTimerManager().ClearTimer(ExplosionZoneTimerHandle);
 
 	if (UGameInstance* GameInstance = GetGameInstance())
 	{
@@ -156,6 +166,25 @@ void AVSGameState::EndLevel()
 	else
 	{
 		OnGameOver(false);
+	}
+}
+
+void AVSGameState::SpawnExplosion()
+{
+	TArray<AActor*> FoundVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnManager::StaticClass(), FoundVolumes);
+
+	if (FoundVolumes.Num() > 0)
+	{
+		ASpawnManager* SpawnVolume = Cast<ASpawnManager>(FoundVolumes[0]);
+		if (SpawnVolume)
+		{
+			AActor* SpawnedActor = SpawnVolume->SpawnExplosionZone();
+			if (IsValid(SpawnedActor))
+			{
+				WaveItems.Add(TWeakObjectPtr<AActor>(SpawnedActor));
+			}
+		}
 	}
 }
 
@@ -220,6 +249,8 @@ void AVSGameState::UpdateHUD()
 
 void AVSGameState::OnGameOver(bool bIsClear)
 {
+	GetWorldTimerManager().ClearTimer(ExplosionZoneTimerHandle);
+
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (AVSPlayerController* VSPlayerController = Cast<AVSPlayerController>(PlayerController))
