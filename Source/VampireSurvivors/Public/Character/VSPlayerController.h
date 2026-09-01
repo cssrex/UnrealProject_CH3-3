@@ -15,6 +15,8 @@ class VAMPIRESURVIVORS_API AVSPlayerController : public APlayerController
 public:
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	UUserWidget* GetHUDWidget() const;
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	UUserWidget* GetMainMenuWidget() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ShowGameHUD();
@@ -22,6 +24,8 @@ public:
 	void ShowMainMenu(bool bIsRestart);
 	UFUNCTION(BlueprintCallable)
 	void StartGame();
+	UFUNCTION(BlueprintCallable)
+	void EndGame();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")

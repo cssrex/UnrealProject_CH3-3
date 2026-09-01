@@ -1,10 +1,11 @@
-#include "Character/VSPlayerController.h"
+﻿#include "Character/VSPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
 #include "Core/VSGameInstance.h"
 #include "Core/VSGameState.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AVSPlayerController::AVSPlayerController()
 	: InputMappingContext(nullptr),
@@ -44,6 +45,11 @@ void AVSPlayerController::BeginPlay()
 UUserWidget* AVSPlayerController::GetHUDWidget() const
 {
 	return HUDWidgetInstance;
+}
+
+UUserWidget* AVSPlayerController::GetMainMenuWidget() const
+{
+	return MainMenuWidgetInstance;
 }
 
 void AVSPlayerController::ShowGameHUD()
@@ -106,11 +112,23 @@ void AVSPlayerController::ShowMainMenu(bool bIsRestart)
 		{
 			if (bIsRestart)
 			{
-				ButtonText->SetText(FText::FromString(TEXT("Restart")));
+				ButtonText->SetText(FText::FromString(TEXT("재시작")));
 			}
 			else
 			{
-				ButtonText->SetText(FText::FromString(TEXT("Start")));
+				ButtonText->SetText(FText::FromString(TEXT("시작하기")));
+			}
+		}
+
+		if (UTextBlock* ButtonText = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("EndButtonText"))))
+		{
+			if (bIsRestart)
+			{
+				ButtonText->SetText(FText::FromString(TEXT("메인메뉴로")));
+			}
+			else
+			{
+				ButtonText->SetText(FText::FromString(TEXT("종료")));
 			}
 		}
 
@@ -143,4 +161,17 @@ void AVSPlayerController::StartGame()
 
 	UGameplayStatics::OpenLevel(GetWorld(), FName("L_Basic"));
 	SetPause(false);
+}
+
+void AVSPlayerController::EndGame()
+{
+	FString CurrentMapName = GetWorld()->GetMapName();
+	if (CurrentMapName.Contains("L_MainMenu"))
+	{
+		UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
+	}
+	else
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), FName("L_MainMenu"));
+	}
 }

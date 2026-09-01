@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
+#include "Components/ProgressBar.h"
 
 AVSCharacter::AVSCharacter()
 {
@@ -166,7 +167,7 @@ void AVSCharacter::OnDeath()
 	AVSGameState* VSGameState = GetWorld() ? GetWorld()->GetGameState<AVSGameState>() : nullptr;
 	if (VSGameState)
 	{
-		VSGameState->OnGameOver();
+		VSGameState->OnGameOver(false);
 	}
 }
 
@@ -177,9 +178,14 @@ void AVSCharacter::UpdateOverHeadHP()
 	UUserWidget* OverheadWidgetInstance = OverheadWidget->GetUserWidgetObject();
 	if (!OverheadWidgetInstance) return;
 
-	if (UTextBlock* HPText = Cast<UTextBlock>(OverheadWidgetInstance->GetWidgetFromName(TEXT("OverHeadHP"))))
+	if (UTextBlock* HPText = Cast<UTextBlock>(OverheadWidgetInstance->GetWidgetFromName(TEXT("HPText"))))
 	{
 		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
+	}
+
+	if (UProgressBar* HPText = Cast<UProgressBar>(OverheadWidgetInstance->GetWidgetFromName(TEXT("HPProgressBar"))))
+	{
+		HPText->SetPercent(Health/MaxHealth);
 	}
 }
 
