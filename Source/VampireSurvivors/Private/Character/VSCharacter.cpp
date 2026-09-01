@@ -11,7 +11,7 @@
 
 AVSCharacter::AVSCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -55,6 +55,22 @@ void AVSCharacter::AddHealth(float Amount)
 	UpdateOverHeadHP();
 }
 
+void AVSCharacter::AddDebuff(const FDebuffInfo& DebuffInfo)
+{
+	if (DebuffInfo.Duration <= 0.0f) return;
+
+	FDebuffInfo NewDebuff = DebuffInfo;
+	NewDebuff.RemainingTime = NewDebuff.Duration;
+
+	ActiveDebuffs.Add(NewDebuff);
+	RefreshDebuffEffects();
+}
+
+const TArray<FDebuffInfo>& AVSCharacter::GetActiveDebuffs() const
+{
+	return ActiveDebuffs;
+}
+
 void AVSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -95,6 +111,29 @@ void AVSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	}
 }
 
+void AVSCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	bool bDebuffRemoved = false;
+
+	for (int32 i = ActiveDebuffs.Num() - 1; i >= 0; --i)
+	{
+		ActiveDebuffs[i].RemainingTime -= DeltaTime;
+
+		if (ActiveDebuffs[i].RemainingTime <= 0.0f)
+		{
+			ActiveDebuffs.RemoveAt(i);
+			bDebuffRemoved = true;
+		}
+	}
+
+	if (bDebuffRemoved)
+	{
+		RefreshDebuffEffects();
+	}
+}
+
 float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -114,17 +153,18 @@ void AVSCharacter::Move(const FInputActionValue& value)
 	if (!Controller) return;
 
 	const FVector2D MoveInput = value.Get<FVector2D>();
+	const float InputMultiplier = bReverseControl ? -1.0f : 1.0f;
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
 		const FVector ForwardDirection = FRotator(0.0f, Controller->GetControlRotation().Yaw, 0.0f).Vector();
-		AddMovementInput(ForwardDirection, MoveInput.X);
+		AddMovementInput(ForwardDirection, MoveInput.X * InputMultiplier);
 	}
 
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
 		const FVector RightDirection = FRotator(0.0f, Controller->GetControlRotation().Yaw + 90.0f, 0.0f).Vector();
-		AddMovementInput(RightDirection, MoveInput.Y);
+		AddMovementInput(RightDirection, MoveInput.Y * InputMultiplier);
 	}
 }
 
@@ -154,12 +194,50 @@ void AVSCharacter::Look(const FInputActionValue& value)
 
 void AVSCharacter::StartSprint(const FInputActionValue& value)
 {
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	bIsSprinting = true;
+	UpdateMovementSpeed();
 }
 
 void AVSCharacter::StopSprint(const FInputActionValue& value)
 {
-	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	bIsSprinting = false;
+	UpdateMovementSpeed();
+}
+
+void AVSCharacter::RefreshDebuffEffects()
+{
+	MoveSpeedMultiplier = 1.0f;
+	bReverseControl = false;
+	BlindCount = 0;
+
+	for (const FDebuffInfo& Debuff : ActiveDebuffs)
+	{
+		switch (Debuff.Type)
+		{
+		case EDebuffType::Slowing:
+			MoveSpeedMultiplier *= 0.5f;
+			break;
+		case EDebuffType::ReverseControl:
+			bReverseControl = true;
+			break;
+		case EDebuffType::Blind:
+			BlindCount++;
+			break;
+		}
+	}
+
+	UpdateMovementSpeed();
+
+	if (AVSPlayerController* PlayerController = Cast<AVSPlayerController>(GetController()))
+	{
+		PlayerController->UpdateBlindEffect(BlindCount);
+	}
+}
+
+void AVSCharacter::UpdateMovementSpeed()
+{
+	const float BaseSpeed = bIsSprinting ? SprintSpeed : NormalSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed * MoveSpeedMultiplier;
 }
 
 void AVSCharacter::OnDeath()

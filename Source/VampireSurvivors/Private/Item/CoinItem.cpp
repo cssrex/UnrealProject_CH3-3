@@ -22,7 +22,7 @@ void ACoinItem::ActivateItem(AActor* Activator)
 				GameState->OnCoinCollected();
 			}
 		}
-
-		DestroyItem();
 	}
+
+	DestroyItem();
 }

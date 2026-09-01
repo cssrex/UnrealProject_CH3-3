@@ -1,13 +1,7 @@
-#include "Item/HealingItem.h"
+#include "Item/DebuffItem.h"
 #include "Character/VSCharacter.h"
 
-AHealingItem::AHealingItem()
-{
-	HealAmount = 20;
-	ItemType = "Healing";
-}
-
-void AHealingItem::ActivateItem(AActor* Activator)
+void ADebuffItem::ActivateItem(AActor* Activator)
 {
 	Super::ActivateItem(Activator);
 
@@ -15,7 +9,7 @@ void AHealingItem::ActivateItem(AActor* Activator)
 	{
 		if (AVSCharacter* PlayerCharacter = Cast<AVSCharacter>(Activator))
 		{
-			PlayerCharacter->AddHealth(HealAmount);
+			PlayerCharacter->AddDebuff(DebuffInfo);
 		}
 	}
 

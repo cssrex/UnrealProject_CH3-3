@@ -177,6 +177,8 @@ void AVSGameState::UpdateHUD()
 	{
 		if (AVSPlayerController* VSPlayerController = Cast<AVSPlayerController>(PlayerController))
 		{
+			VSPlayerController->UpdateDebuffUI();
+
 			if (UUserWidget* HUDWidget = VSPlayerController->GetHUDWidget())
 			{
 				if (UTextBlock* TimeText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("TimeText"))))

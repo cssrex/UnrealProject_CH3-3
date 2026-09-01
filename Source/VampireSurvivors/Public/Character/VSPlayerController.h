@@ -18,6 +18,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	UUserWidget* GetMainMenuWidget() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Debuff")
+	void UpdateBlindEffect(int32 BlindCount);
+
 	UFUNCTION(BlueprintCallable)
 	void ShowGameHUD();
 	UFUNCTION(BlueprintCallable)
@@ -26,6 +29,8 @@ public:
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
 	void EndGame();
+
+	void UpdateDebuffUI();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
@@ -48,6 +53,9 @@ protected:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "UI|Menu")
 	UUserWidget* MainMenuWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Debuff")
+	TSubclassOf<UUserWidget> DebuffIconWidgetClass;
 
 public:
 	AVSPlayerController();
