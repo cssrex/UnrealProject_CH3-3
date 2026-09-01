@@ -117,6 +117,8 @@ void AVSPlayerController::ShowGameHUD()
 
 void AVSPlayerController::ShowMainMenu(bool bIsRestart)
 {
+	bNextLevelMenu = false;
+
 	if (HUDWidgetInstance)
 	{
 		HUDWidgetInstance->RemoveFromParent();
@@ -190,8 +192,8 @@ void AVSPlayerController::StartGame()
 		VSGameInstance->SetTotalScore(0);
 	}
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName("L_Basic"));
 	SetPause(false);
+	UGameplayStatics::OpenLevel(GetWorld(), FName("L_Basic"));
 }
 
 void AVSPlayerController::EndGame()
@@ -203,6 +205,7 @@ void AVSPlayerController::EndGame()
 	}
 	else
 	{
+		SetPause(false);
 		UGameplayStatics::OpenLevel(GetWorld(), FName("L_MainMenu"));
 	}
 }
@@ -291,5 +294,29 @@ void AVSPlayerController::UpdateDebuffUI()
 
 			TimeText->SetText(FText::AsNumber(Seconds));
 		}
+	}
+}
+
+void AVSPlayerController::ShowLevelClearMenu(int32 CompletedLevel)
+{
+	ShowMainMenu(true);
+
+	if (!MainMenuWidgetInstance)
+	{
+		return;
+	}
+
+	bNextLevelMenu = true;
+
+	if (UTextBlock* Text = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("GameOverText"))))
+	{
+		Text->SetText(FText::FromString(FString::Printf(TEXT("Level %d Clear!"), CompletedLevel)));
+
+		Text->SetColorAndOpacity(FSlateColor(FLinearColor(0.1f, 0.5f, 1.0f)));
+	}
+
+	if (UTextBlock* Text = Cast<UTextBlock>(MainMenuWidgetInstance->GetWidgetFromName(TEXT("StartButtonText"))))
+	{
+		Text->SetText(FText::FromString(TEXT("다음 레벨")));
 	}
 }

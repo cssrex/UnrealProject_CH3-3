@@ -136,6 +136,11 @@ void AVSCharacter::Tick(float DeltaTime)
 
 float AVSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (!CanBeDamaged())
+	{
+		return 0.0f;
+	}
+
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	Health = FMath::Clamp(Health - DamageAmount, 0.0f, MaxHealth);

@@ -22,7 +22,7 @@ FVector ASpawnManager::GetRandomPointInVolume() const
 	return BoxOrigin + FVector(
 		FMath::FRandRange(-BoxExtent.X, BoxExtent.X),
 		FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y),
-		FMath::FRandRange(-BoxExtent.Z, BoxExtent.Z)
+		0.0f
 	);
 }
 

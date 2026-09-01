@@ -16,6 +16,8 @@ public:
 	ABaseItem();
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void OnItemOverlap(
 		UPrimitiveComponent* OverlappedComp,	// 오버랩이 발생한 자기 자신 (Collision 같은거)
 		AActor* OtherActor,						// 부딪힌 상대방 액터
@@ -48,4 +50,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FName ItemType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floating")
+	bool bEnableFloating = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floating")
+	float FloatAmplitude = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floating", meta = (ClampMin = "0.0"))
+	float FloatFrequency = 0.5f;
+
+private:
+	FVector InitialMeshLocation = FVector::ZeroVector;
+	float FloatElapsedTime = 0.0f;
 };

@@ -13,7 +13,7 @@ public:
 	AMineItem();
 
 	virtual void ActivateItem(AActor* Activator) override;
-
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USphereComponent* ExplosionArea;
@@ -31,9 +31,7 @@ protected:
 	USoundBase* ExplosionSound;
 
 private:
-	FTimerHandle ExplosionTimerHandle;
-
-	bool bHasExploded;
-
 	void Explode();
+	FTimerHandle ExplosionTimerHandle;
+	bool bHasExploded;
 };

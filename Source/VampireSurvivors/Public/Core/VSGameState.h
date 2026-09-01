@@ -4,6 +4,9 @@
 #include "GameFramework/GameState.h"
 #include "VSGameState.generated.h"
 
+class USoundBase;
+class UAudioComponent;
+
 USTRUCT(BlueprintType)
 struct FWaveConfig
 {
@@ -28,6 +31,8 @@ public:
 	void AddScore(int32 Amount);
 	UFUNCTION()
 	void OnGameOver(bool bIsClear);
+	UFUNCTION(BlueprintCallable)
+	void GoToNextLevel();
 	void OnCoinCollected();
 	void UpdateHUD();
 
@@ -55,6 +60,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
 	TArray<FName> LevelMapNames;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TArray<TObjectPtr<USoundBase>> LevelBGMs;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<USoundBase> WaveStartSound = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<USoundBase> LevelClearSound = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<USoundBase> GameOverSound = nullptr;
 
 public:
 	AVSGameState();
@@ -76,6 +89,10 @@ private:
 	FTimerHandle ExplosionZoneTimerHandle;
 
 	int32 CurWave;
+	bool bLevelEnded = false;
 
 	TArray<TWeakObjectPtr<AActor>> WaveItems;
+
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> BGMComponent = nullptr;
 };

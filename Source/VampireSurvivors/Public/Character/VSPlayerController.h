@@ -31,6 +31,7 @@ public:
 	void EndGame();
 
 	void UpdateDebuffUI();
+	void ShowLevelClearMenu(int32 CompletedLevel);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
@@ -43,6 +44,9 @@ public:
 	UInputAction* LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* SprintAction;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	bool bNextLevelMenu = false;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|HUD")

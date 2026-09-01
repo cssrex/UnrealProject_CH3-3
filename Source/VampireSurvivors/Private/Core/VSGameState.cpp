@@ -6,6 +6,8 @@
 #include "Character/VSPlayerController.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 
 AVSGameState::AVSGameState()
 {
@@ -25,6 +27,8 @@ AVSGameState::AVSGameState()
 	CurrentLevelIndex = 0;
 	MaxLevels = 3;
 
+	LevelBGMs.SetNum(MaxLevels);
+
 	ExplosionDelay = 5.0f;
 
 	CurWave = 1;
@@ -34,6 +38,13 @@ void AVSGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
+	const FString LevelName = UGameplayStatics::GetCurrentLevelName(this, true);
+
+	if (LevelName == TEXT("L_MainMenu"))
+	{
+		return;
+	}
+
 	StartLevel();
 
 	GetWorldTimerManager().SetTimer(HUDUpdateTimerHandle, this, &AVSGameState::UpdateHUD, 0.1f, true);
@@ -41,6 +52,8 @@ void AVSGameState::BeginPlay()
 
 void AVSGameState::StartLevel()
 {
+	bLevelEnded = false;
+
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (AVSPlayerController* VSPlayerController = Cast<AVSPlayerController>(PlayerController))
@@ -56,6 +69,18 @@ void AVSGameState::StartLevel()
 		{
 			CurrentLevelIndex = VSGameInstance->GetCurrentLevelIndex();
 		}
+	}
+
+	if (IsValid(BGMComponent))
+	{
+		BGMComponent->Stop();
+	}
+
+	BGMComponent = nullptr;
+
+	if (LevelBGMs.IsValidIndex(CurrentLevelIndex) && LevelBGMs[CurrentLevelIndex])
+	{
+		BGMComponent = UGameplayStatics::SpawnSound2D(this, LevelBGMs[CurrentLevelIndex]);
 	}
 
 	StartWave();
@@ -121,10 +146,20 @@ void AVSGameState::StartWave()
 	GetWorldTimerManager().SetTimer(WaveTimerHandle, this, &AVSGameState::OnWaveTimeUp, CurrentWaveConfig.WaveDuration, false);
 
 	UpdateHUD();
+
+	if (CurWave > 1 && WaveStartSound)
+	{
+		UGameplayStatics::PlaySound2D(this, WaveStartSound);
+	}
 }
 
 void AVSGameState::OnWaveTimeUp()
 {
+	if (bLevelEnded)
+	{
+		return;
+	}
+
 	if (CurWave < MaxWave)
 	{
 		CurWave++;
@@ -139,33 +174,36 @@ void AVSGameState::OnWaveTimeUp()
 
 void AVSGameState::EndLevel()
 {
-	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
-	GetWorldTimerManager().ClearTimer(ExplosionZoneTimerHandle);
-
-	if (UGameInstance* GameInstance = GetGameInstance())
+	if (bLevelEnded)
 	{
-		UVSGameInstance* VSGameInstance = Cast<UVSGameInstance>(GameInstance);
-		if (VSGameInstance)
-		{
-			AddScore(Score);
-			CurrentLevelIndex++;
-			VSGameInstance->SetCurrentLevelIndex(CurrentLevelIndex);
-		}
+		return;
 	}
 
-	if (CurrentLevelIndex >= MaxLevels)
+	if (CurrentLevelIndex + 1 >= MaxLevels)
 	{
 		OnGameOver(true);
 		return;
 	}
 
-	if (LevelMapNames.IsValidIndex(CurrentLevelIndex))
+	bLevelEnded = true;
+
+	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
+	GetWorldTimerManager().ClearTimer(ExplosionZoneTimerHandle);
+	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
+
+	if (IsValid(BGMComponent))
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), LevelMapNames[CurrentLevelIndex]);
+		BGMComponent->Stop();
 	}
-	else
+
+	if (AVSPlayerController* PC = Cast<AVSPlayerController>(GetWorld()->GetFirstPlayerController()))
 	{
-		OnGameOver(false);
+		PC->SetPause(true);
+		if (LevelClearSound)
+		{
+			UGameplayStatics::PlaySound2D(this, LevelClearSound);
+		}
+		PC->ShowLevelClearMenu(CurrentLevelIndex + 1);
 	}
 }
 
@@ -180,10 +218,6 @@ void AVSGameState::SpawnExplosion()
 		if (SpawnVolume)
 		{
 			AActor* SpawnedActor = SpawnVolume->SpawnExplosionZone();
-			if (IsValid(SpawnedActor))
-			{
-				WaveItems.Add(TWeakObjectPtr<AActor>(SpawnedActor));
-			}
 		}
 	}
 }
@@ -249,13 +283,35 @@ void AVSGameState::UpdateHUD()
 
 void AVSGameState::OnGameOver(bool bIsClear)
 {
+	if (bLevelEnded)
+	{
+		return;
+	}
+
+	bLevelEnded = true;
+
+	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
 	GetWorldTimerManager().ClearTimer(ExplosionZoneTimerHandle);
+	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
+
+	if (IsValid(BGMComponent))
+	{
+		BGMComponent->Stop();
+	}
 
 	if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 	{
 		if (AVSPlayerController* VSPlayerController = Cast<AVSPlayerController>(PlayerController))
 		{
 			VSPlayerController->SetPause(true);
+
+			USoundBase* ResultSound = bIsClear ? LevelClearSound.Get() : GameOverSound.Get();
+
+			if (ResultSound)
+			{
+				UGameplayStatics::PlaySound2D(this, ResultSound);
+			}
+
 			VSPlayerController->ShowMainMenu(true);
 
 			if (UUserWidget* MainMenuWidget = VSPlayerController->GetMainMenuWidget())
@@ -277,6 +333,35 @@ void AVSGameState::OnGameOver(bool bIsClear)
 			}
 		}
 	}
+}
+
+void AVSGameState::GoToNextLevel()
+{
+	if (!bLevelEnded)
+	{
+		return;
+	}
+
+	const int32 NextLevelIndex = CurrentLevelIndex + 1;
+
+	if (NextLevelIndex >= MaxLevels || !LevelMapNames.IsValidIndex(NextLevelIndex) || LevelMapNames[NextLevelIndex].IsNone())
+	{
+		return;
+	}
+
+	UVSGameInstance* GameInstance = Cast<UVSGameInstance>(GetGameInstance());
+
+	if (!GameInstance)
+	{
+		return;
+	}
+
+	bLevelEnded = false;
+
+	GameInstance->SetCurrentLevelIndex(NextLevelIndex);
+
+	UGameplayStatics::SetGamePaused(this, false);
+	UGameplayStatics::OpenLevel(this, LevelMapNames[NextLevelIndex]);
 }
 
 int32 AVSGameState::GetScore() const

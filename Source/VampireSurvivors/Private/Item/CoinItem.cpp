@@ -8,6 +8,13 @@ ACoinItem::ACoinItem()
 	ItemType = "DefaultCoin";
 }
 
+void ACoinItem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	AddActorWorldRotation(FRotator(0, 180.0f * DeltaTime, 0));
+}
+
 void ACoinItem::ActivateItem(AActor* Activator)
 {
 	Super::ActivateItem(Activator);
