@@ -27,9 +27,13 @@ protected:
 	UDataTable* ItemDataTable;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
 	TSubclassOf<AActor> ExplosionZoneClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
+	float SpawnZOffset = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning", meta = (ClampMin = "0.0"))
+	float TraceLength = 1000.0f;
 
 private:
 	FItemSpawnRow* GetRandomItem() const;
 	AActor* SpawnItem(TSubclassOf<AActor> ItemClass);
-	FVector GetRandomPointInVolume() const;
+	bool GetRandomPointInVolume(FVector& OutSpawnLocation) const;
 };

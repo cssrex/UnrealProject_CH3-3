@@ -1,5 +1,6 @@
 #include "Manager/SpawnManager.h"
 #include "Components/BoxComponent.h"
+#include "DrawDebugHelpers.h"
 
 ASpawnManager::ASpawnManager()
 {
@@ -14,16 +15,34 @@ ASpawnManager::ASpawnManager()
 	ItemDataTable = nullptr;
 }
 
-FVector ASpawnManager::GetRandomPointInVolume() const
+bool ASpawnManager::GetRandomPointInVolume(FVector& OutSpawnLocation) const
 {
 	FVector BoxExtent = SpawningBox->GetScaledBoxExtent(); // 스케일을 고려한 박스 크기의 절반을 가져옴
 	FVector BoxOrigin = SpawningBox->GetComponentLocation(); // 박스의 중심 좌표
 
-	return BoxOrigin + FVector(
-		FMath::FRandRange(-BoxExtent.X, BoxExtent.X),
-		FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y),
-		0.0f
-	);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	for (int32 i = 0; i < 30; i++)
+	{
+		const float RandomX = FMath::FRandRange(-BoxExtent.X, BoxExtent.X);
+		const float RandomY = FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y);
+
+		const FVector TraceStart(BoxOrigin.X + RandomX, BoxOrigin.Y + RandomY, BoxOrigin.Z + BoxExtent.Z);
+		const FVector TraceEnd(TraceStart.X, TraceStart.Y, BoxOrigin.Z - BoxExtent.Z - TraceLength);
+
+		FHitResult HitResult;
+
+		const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+
+		if (bHit)
+		{
+			OutSpawnLocation = HitResult.ImpactPoint + FVector(0.0f, 0.0f, SpawnZOffset);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 AActor* ASpawnManager::SpawnRandomItem()
@@ -43,7 +62,14 @@ AActor* ASpawnManager::SpawnExplosionZone()
 {
 	if (!ExplosionZoneClass) return nullptr;
 
-	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ExplosionZoneClass, GetRandomPointInVolume(), FRotator::ZeroRotator);
+	FVector SpawnLocation;
+
+	if (!GetRandomPointInVolume(SpawnLocation))
+	{
+		return nullptr;
+	}
+
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ExplosionZoneClass, SpawnLocation, FRotator::ZeroRotator);
 
 	return SpawnedActor;
 }
@@ -86,7 +112,14 @@ AActor* ASpawnManager::SpawnItem(TSubclassOf<AActor> ItemClass)
 {
 	if (!ItemClass) return nullptr;
 
-	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ItemClass, GetRandomPointInVolume(), FRotator::ZeroRotator);
+	FVector SpawnLocation;
+
+	if (!GetRandomPointInVolume(SpawnLocation))
+	{
+		return nullptr;
+	}
+
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ItemClass, SpawnLocation, FRotator::ZeroRotator);
 
 	return SpawnedActor;
 }
